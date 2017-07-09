@@ -1,36 +1,44 @@
 import React from 'react';
 import { StyleSheet, Text, View, Slider, Button } from 'react-native';
-import { Provider } from 'react-redux';
-import { connect } from 'react-redux';
-import store from './store/store.js';
-import CounterContainer from './containers/CounterContainer.js';
+
+
+function upsert_slider_val(value) {
+    console.log(this.state)
+    this.setState(...this.state, {inter_treatment_interval_ui: value })
+}
 
 export default class App extends React.Component {
-
+  constructor(props) {
+    super(props);
+    //instantiate the state for the UI vals
+    let rightNow = new Date()
+    this.state = {inter_treatment_interval_ui: 2,  treatment_num_ui: 12, start_date: rightNow};
+  }
   render() {
     return (
       <View style={styles.container}>
-      <Provider store={store}>
-        <View style={styles.container}>
-          <CounterContainer/>
-        </View>
-      </Provider>
-      <View style={{width:"100%"}}>
-      <Text style={styles.my_font, styles.card_header_text}>inter_treatment_interval Weeks Between Treatments</Text>
+<View style={styles.treatment_option_slider_card}>
+      <Text style={styles.my_font, styles.card_header_text}>{this.state.inter_treatment_interval_ui} Weeks Between Treatments</Text>
         <Slider step={1} minimumValue={1} maximumValue={4} value={2}
-          onSlidingComplete={(value) => console.log("change inter_treatment_interval state to ", value)}
-              />
-<Text style={styles.my_font, styles.card_header_text}>treatment_num Treatments</Text>
+          onValueChange={(value) => {
+            this.setState(...this.state, {inter_treatment_interval_ui: value })
+        }}
+        />
+<Text style={styles.my_font, styles.card_header_text}>{this.state.treatment_num_ui} Treatments</Text>
         <Slider step={1} minimumValue={1} maximumValue={20} value={12}
-          onSlidingComplete={(value) => console.log("change tx_num state to ", value)}
+        onValueChange={(value) => {
+          this.setState(...this.state, {treatment_num_ui: value })
+      }}
               />
+
               <Button
-                onPress={() => (console.log('set show_tx_setup to false'))}
-                title="Submit"
+                onPress={() => (console.log(this.state,"dispatch(hideTreatmentSettings(this.state.inter_treatment_interval_ui, this.state.treatment_num_ui))"))}
+                title="Done"
                 color="#333"
               />
-      </View>
-              <Text style={styles.my_font, styles.card_header_text}>NEXT TREATMENT DATE</Text>
+</View>
+
+          <Text style={styles.my_font, styles.card_header_text}>NEXT TREATMENT DATE</Text>
               <Text style={styles.my_font}>Friday April 19, 2017</Text>
               <Text style={styles.my_font, styles.normal_body_text}>You have 10 treatments remaining.</Text>
 
@@ -49,9 +57,11 @@ export default class App extends React.Component {
               </View>
 
             </View>
+
     );
   }
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -59,6 +69,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  treatment_option_slider_card: {
+    width:'100%',
+    marginLeft: 10,
+    marginRight:10,
+    backgroundColor: 'lightgrey',
   },
   my_font: {
     fontFamily: 'System',
