@@ -1,12 +1,20 @@
 import React from 'react';
 import { StyleSheet, Text, View, Slider, Button } from 'react-native';
+import { Provider } from 'react-redux';
+import { connect } from 'react-redux';
+import store from './store/store.js';
+import CounterContainer from './containers/CounterContainer.js';
 
 export default class App extends React.Component {
 
   render() {
     return (
       <View style={styles.container}>
-
+      <Provider store={store}>
+        <View style={styles.container}>
+          <CounterContainer/>
+        </View>
+      </Provider>
       <View style={{width:"100%"}}>
       <Text style={styles.my_font, styles.card_header_text}>inter_treatment_interval Weeks Between Treatments</Text>
         <Slider step={1} minimumValue={1} maximumValue={4} value={2}
