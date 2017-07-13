@@ -8,10 +8,6 @@ function upsert_slider_val(value) {
     this.setState(...this.state, {inter_treatment_interval_ui: value })
 }
 
-
-
-
-
 class TreatmentStartDatePicker extends React.Component {
   constructor(props){
     super(props)
