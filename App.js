@@ -1,12 +1,94 @@
 import React from 'react';
-import { StyleSheet, Text, View, Slider, Button, ScrollView } from 'react-native';
+import { StyleSheet, TouchableHighlight, Text, View, Slider, Button, ScrollView } from 'react-native';
 import DatePicker from 'react-native-datepicker'
 import { addNavigationHelpers } from 'react-navigation';
+
+import {connect} from 'react-redux';
+import {createStore, dispatch} from 'redux';
 
 function upsert_slider_val(value) {
     console.log(this.state)
     this.setState(...this.state, {inter_treatment_interval_ui: value })
 }
+
+
+SET_PAGE_VIEW = 'SET_PAGE_VIEW'
+SET_NUM_TREATMENTS = "SET_NUM_TREATMENTS"
+SET_INTER_TREATMENT_INTERVAL = "SET_INTER_TREATMENT_INTERVAL"
+SET_TREATMENT_START_DATE = "SET_TREATMENT_START_DATE"
+
+//action
+function set_page(page) {
+  return {
+    type: SET_PAGE_VIEW,
+    page_of_interest: page
+  }
+}
+
+//action
+function set_num_treatments(num) {
+  return {
+    type: SET_NUM_TREATMENTS,
+    num: num
+  }
+}
+
+//action
+function set_inter_treatment_interval(num_weeks) {
+  return {
+    type: SET_INTER_TREATMENT_INTERVAL,
+    weeks_between_treatments: num_weeks
+  }
+}
+
+function set_treatment_start_date(date){
+  return {
+    type: SET_TREATMENT_START_DATE,
+    date: date
+  }
+}
+
+
+const initialState = {
+  current_page: "overview",
+  num_treatments: 12,
+  inter_treatment_interval: 2,
+}
+function main_reducer(state = initialState, action) {
+  switch (action.type) {
+    case SET_PAGE_VIEW:
+      return Object.assign({}, state, {
+        current_page: action.page_of_interest
+      })
+    case SET_NUM_TREATMENTS:
+      return Object.assign({}, state, {
+        num_treatments: action.num
+      })
+    case SET_INTER_TREATMENT_INTERVAL:
+      return Object.assign({}, state, {
+        inter_treatment_interval: action.weeks_between_treatments
+      })
+    case SET_TREATMENT_START_DATE:
+      return Object.assign({}, state, {
+        treatment_start_date: action.date
+      })
+    default:
+      return state
+  }
+  return state
+}
+
+let store = createStore(main_reducer);
+store.getState();
+
+store.subscribe(() =>
+  console.log(store.getState())
+);
+
+
+
+
+
 
 class TreatmentStartDatePicker extends React.Component {
   constructor(props){
@@ -16,10 +98,10 @@ class TreatmentStartDatePicker extends React.Component {
   render(){
     return (
       <DatePicker
-        style={{width: '100%', marginTop: 50, marginBottom: 60}}
-        // date={this.state.date}
+        style={{width: '100%'}}
+        // date={store.state.date}
         mode="date"
-        placeholder="Select your first treatment date"
+        placeholder="Select your next treatment date"
         format="dddd, MMMM DD, YYYY"
         minDate={new Date()}
         confirmBtnText="Confirm"
@@ -30,25 +112,40 @@ class TreatmentStartDatePicker extends React.Component {
           }
           // ... You can check the source to find the other keys.
         }}
-        onDateChange={(date) => {
-          console.log('run child handler for ', date);
-          this.props.handler(date);
-          // this.props.render();
-        }}
+        onDateChange={(date) => store.dispatch(set_treatment_start_date(date))}
+        
       />
     )
   }
 }
+
+
 class HeaderNavigatorButtons extends React.Component {
   constructor(props){
     super(props)
   }
   render() {
     return(
-      <View style={{flex:1, flexDirection:'row', justifyContent:'space-between', padding:0, marginTop:30,width:'50%'}}>
-        <Text style={styles.navbartext,{flex:1, fontSize: 14}}>Data</Text>
-        <Text style={styles.navbartext,{flex:1, fontSize: 14}}>Overview</Text>
-        <Text style={styles.navbartext,{flex:1, fontSize: 14}}>Settings</Text>
+      <View style={styles.navbar_button_container}>
+
+      <Button
+        onPress={() => store.dispatch(set_page("overview"))}
+        title="OVERVIEW"
+        color="black"
+        accessibilityLabel="OVERVIEW"
+      />
+      <Button
+        onPress={() => store.dispatch(set_page("data"))}
+        title="DATA"
+        color="grey"
+        accessibilityLabel="DATA"
+      />
+      <Button
+        onPress={() => store.dispatch(set_page("settings"))}
+        title="SETTINGS"
+        color="grey"
+        accessibilityLabel="SETTINGS"
+      />
       </View>
     )
   }
@@ -57,14 +154,6 @@ class HeaderNavigatorButtons extends React.Component {
 export default class App extends React.Component {
   constructor(props) {
     super(props);
-    //instantiate the state for the UI vals
-    let rightNow = new Date()
-    this.state = {inter_treatment_interval_ui: 2,  treatment_num_ui: 12, treatment_start_date: rightNow};
-    this.handler = this.handler.bind(this)
-  }
-  handler(date) {
-    console.log('handler run with ', date)
-    this.setState(...this.state, {date: date})
   }
   render() {
     return (
@@ -72,42 +161,18 @@ export default class App extends React.Component {
 
       <HeaderNavigatorButtons />
       <View style={styles.treatment_option_slider_card}>
-      <Text style={styles.my_font, styles.tx_settings_header}>{this.state.treatment_num_ui} Treatments</Text>
+      <Text style={styles.my_font, styles.tx_settings_header}>{store.inter_treatment_interval} Treatments</Text>
               <Slider step={1} minimumValue={1} maximumValue={20} value={12}
-              onValueChange={(value) => {
-                this.setState(...this.state, {treatment_num_ui: value })
-            }}
-                    />
-                    <Text style={styles.my_font, styles.tx_settings_header}>{this.state.inter_treatment_interval_ui} Weeks Between Treatments</Text>
-                    <Slider step={1} minimumValue={1} maximumValue={4} value={2}
-                    onValueChange={(value) => {
-                      this.setState(...this.state, {inter_treatment_interval_ui: value })
-                    }}
+              onValueChange={(num_treatments) => {store.dispatch(set_num_treatments(num_treatments))}}  />
+                    <Text style={styles.my_font, styles.tx_settings_header}>{store.inter_treatment_interval} Weeks Between Treatments</Text>
+                    <Slider step={1} minimumValue={1} maximumValue={4} value={2} style={{marginBottom:60}}
+                    onValueChange={(value) => {store.dispatch(set_inter_treatment_interval(value))}}
                     />
                     <TreatmentStartDatePicker handler={this.handler}/>
-                    <Button
-                      onPress={() => (console.log(this.state,"dispatch(hideTreatmentSettings(this.state.inter_treatment_interval_ui, this.state.treatment_num_ui))"))}
-                      title="Done"
-                      color="#333"
-                    />
+
       </View>
 
-          <Text style={styles.my_font, styles.card_header_text}>NEXT TREATMENT DATE</Text>
-              <Text style={styles.my_font}>Friday April 19, 2017</Text>
-              <Text style={styles.my_font, styles.normal_body_text}>You have 10 treatments remaining.</Text>
 
-              <Text style={styles.my_font, styles.card_header_text}>FORECAST</Text>
-              <Text style={styles.my_font, styles.normal_body_text}>You are likely to feel lethargic all day. You may experience nausea.</Text>
-
-
-
-              <Text style={styles.my_font, styles.card_header_text}>LATER THIS WEEK</Text>
-              <Text style={styles.my_font, styles.normal_body_text}>Vomiting and nausea for two more days, expected to feel near-normal on Tuesday</Text>
-              <View style={{flexDirection: 'row', margin:20}}>
-              <Text style={styles.my_font,{flex:1, width:20, fontSize: 8}}>FATIGUE</Text>
-              <Text style={styles.my_font,{flex:1, width:20, fontSize: 8}}>NAUSEA</Text>
-              <Text style={styles.my_font,{flex:1, width:20, fontSize: 8}}>PAIN</Text>
-              <Text style={styles.my_font,{flex:1, width:20, fontSize: 8}}>NEUROPATHY</Text>
               </View>
     );
   }
@@ -125,6 +190,7 @@ const styles = StyleSheet.create({
   },
   treatment_option_slider_card: {
     width:'100%',
+    flex:9,
     padding:30,
     marginLeft: 20,
     marginRight:20,
@@ -144,5 +210,22 @@ const styles = StyleSheet.create({
     fontSize: 30,
     marginBottom: 30,
     marginTop: 50,
+  },
+  navbar_text: {
+    fontSize: 14,
+    fontWeight:'200',
+    width: 100,
+    marginLeft:0,
+    marginRight:0,
+    paddingRight:0,
+    paddingLeft:0,
+
+  },
+  navbar_button_container: {
+    flex:1,
+    marginTop: 25,
+    flexDirection: 'row',
+    justifyContent:'space-between',
+    alignItems:'center'
   }
 });
