@@ -39,6 +39,20 @@ class TreatmentStartDatePicker extends React.Component {
     )
   }
 }
+class HeaderNavigatorButtons extends React.Component {
+  constructor(props){
+    super(props)
+  }
+  render() {
+    return(
+      <View style={{flex:1, flexDirection:'row', justifyContent:'space-between', padding:0, marginTop:30,width:'50%'}}>
+        <Text style={styles.navbartext,{flex:1, fontSize: 14}}>Data</Text>
+        <Text style={styles.navbartext,{flex:1, fontSize: 14}}>Overview</Text>
+        <Text style={styles.navbartext,{flex:1, fontSize: 14}}>Settings</Text>
+      </View>
+    )
+  }
+}
 
 export default class App extends React.Component {
   constructor(props) {
@@ -56,6 +70,7 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
 
+      <HeaderNavigatorButtons />
       <View style={styles.treatment_option_slider_card}>
       <Text style={styles.my_font, styles.tx_settings_header}>{this.state.treatment_num_ui} Treatments</Text>
               <Slider step={1} minimumValue={1} maximumValue={20} value={12}
@@ -94,9 +109,6 @@ export default class App extends React.Component {
               <Text style={styles.my_font,{flex:1, width:20, fontSize: 8}}>PAIN</Text>
               <Text style={styles.my_font,{flex:1, width:20, fontSize: 8}}>NEUROPATHY</Text>
               </View>
-
-            </View>
-
     );
   }
 }
@@ -106,6 +118,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     height:'100%',
+    width:'100%',
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
