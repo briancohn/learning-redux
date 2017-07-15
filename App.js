@@ -3,13 +3,9 @@ import { StyleSheet, TouchableHighlight, Text, View, Slider, Button, ScrollView 
 import DatePicker from 'react-native-datepicker'
 import { addNavigationHelpers } from 'react-navigation';
 
-import {connect} from 'react-redux';
+import {connect, Provider} from 'react-redux';
 import {createStore, dispatch} from 'redux';
-
-function upsert_slider_val(value) {
-    console.log(this.state)
-    this.setState(...this.state, {inter_treatment_interval_ui: value })
-}
+import PropTypes from 'prop-types'
 
 
 SET_PAGE_VIEW = 'SET_PAGE_VIEW'
@@ -78,9 +74,12 @@ function main_reducer(state = initialState, action) {
   return state
 }
 
-let store = createStore(main_reducer);
-store.getState();
 
+let store = createStore(main_reducer);
+
+
+
+store.getState();
 store.subscribe(() =>
   console.log(store.getState())
 );
@@ -91,15 +90,24 @@ store.subscribe(() =>
 
 
 class TreatmentStartDatePicker extends React.Component {
-  constructor(props){
-    super(props)
+  componentDidMount() {
+    const {store} = this.props;
+    this.unsubscribe = store.subscribe(() =>
+    this.forceUpdate()
+  );
+  }
+  componentWillUnmount() {
+    this.unsubscribe()
   }
 
   render(){
+    const props = this.props
+    const {store} = props
+    const state = store.getState()
     return (
       <DatePicker
         style={{width: '100%'}}
-        // date={store.state.date}
+        date={state.treatment_start_date}
         mode="date"
         placeholder="Select your next treatment date"
         format="dddd, MMMM DD, YYYY"
@@ -113,7 +121,7 @@ class TreatmentStartDatePicker extends React.Component {
           // ... You can check the source to find the other keys.
         }}
         onDateChange={(date) => store.dispatch(set_treatment_start_date(date))}
-        
+
       />
     )
   }
@@ -151,33 +159,58 @@ class HeaderNavigatorButtons extends React.Component {
   }
 }
 
+class TreatmentSettings extends React.Component {
+  constructor(props){
+    super(props)
+  }
+  render() {
+    const props = this.props
+    const {store} = props
+    const state = store.getState()
+    return(
+      <View style={styles.treatment_option_slider_card}>
+      <Text style={styles.my_font, styles.tx_settings_header}>{state.num_treatments} Treatments</Text>
+      <Slider step={1} minimumValue={1} maximumValue={20} value={12}
+              onValueChange={(num_treatments) => {store.dispatch(set_num_treatments(num_treatments))}}  />
+      <Text style={styles.my_font, styles.tx_settings_header}>X Weeks Between Treatments</Text>
+      <Slider step={1} minimumValue={1} maximumValue={4} value={2} style={{marginBottom:60}}
+                    onValueChange={(value) => {store.dispatch(set_inter_treatment_interval(value))}}
+                    />
+      <TreatmentStartDatePicker store={store}/>
+
+      </View>
+    )
+  }
+}
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
   }
   render() {
     return (
-      <View style={styles.container}>
-
-      <HeaderNavigatorButtons />
-      <View style={styles.treatment_option_slider_card}>
-      <Text style={styles.my_font, styles.tx_settings_header}>{store.inter_treatment_interval} Treatments</Text>
-              <Slider step={1} minimumValue={1} maximumValue={20} value={12}
-              onValueChange={(num_treatments) => {store.dispatch(set_num_treatments(num_treatments))}}  />
-                    <Text style={styles.my_font, styles.tx_settings_header}>{store.inter_treatment_interval} Weeks Between Treatments</Text>
-                    <Slider step={1} minimumValue={1} maximumValue={4} value={2} style={{marginBottom:60}}
-                    onValueChange={(value) => {store.dispatch(set_inter_treatment_interval(value))}}
-                    />
-                    <TreatmentStartDatePicker handler={this.handler}/>
-
-      </View>
-
-
-              </View>
+      <Provider store={createStore(main_reducer)}>
+        <AppContainer />
+      </Provider>
     );
   }
 }
 
+class AppContainer extends React.Component {
+  constructor(props){
+    super(props)
+  }
+  render(){
+    return(
+
+          <View style={styles.container}>
+            <HeaderNavigatorButtons />
+            <TreatmentSettings store={store} />
+            <Text>{store.num_treatments}</Text>
+          </View>
+    )
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
